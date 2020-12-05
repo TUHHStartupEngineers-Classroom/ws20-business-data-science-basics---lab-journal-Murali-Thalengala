@@ -11,7 +11,7 @@
 
 <meta name="author" content="Murali Krishna Thalengala" />
 
-<meta name="date" content="2020-11-23" />
+<meta name="date" content="2020-12-06" />
 
 <title>Journal (reproducible report)</title>
 
@@ -405,181 +405,1350 @@ div.tocify {
 
 <h1 class="title toc-ignore">Journal (reproducible report)</h1>
 <h4 class="author">Murali Krishna Thalengala</h4>
-<h4 class="date">2020-11-23</h4>
+<h4 class="date">2020-12-06</h4>
 
 </div>
 
 
-<p><strong>IMPORTANT:</strong> You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.</p>
-<p>This is an <code>.Rmd</code> file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a # in front of your text, it will create a top level-header.</p>
-<div id="my-first-post" class="section level1">
-<h1><span class="header-section-number">1</span> My first post</h1>
+<div id="challenge-tidyverse" class="section level1">
+<h1><span class="header-section-number">1</span> Challenge Tidyverse</h1>
 <p>Last compiled: 2020-12-05</p>
-<pre class="r"><code>library (httr)
+<div id="sales-by-location" class="section level2">
+<h2><span class="header-section-number">1.1</span> Sales by location</h2>
+<pre class="r"><code># Data Science at TUHH ------------------------------------------------------
+# SALES ANALYSIS ----
+cat(&quot;\014&quot;) #to clear console</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code># 1.0 Load libraries ----
+library(tidyverse)
+
+library(readxl)
+
+
+# 2.0 Importing Files ----
+
+bikes_tbl      &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/bikes.xlsx&quot;)
+orderlines_tbl &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/orderlines.xlsx&quot;)
+
+#Not required, just for completeness
+bikeshops_tbl  &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/bikeshops.xlsx&quot;)
+
+# 3.0 Examining Data ----
+glimpse(bikes_tbl)</code></pre>
+<pre><code>## Rows: 231
+## Columns: 9
+## $ bike.id        &lt;dbl&gt; 2875, 2873, 2874, 2876, 2877, 2225, 2091, 2086, 2088, 2120, 2087, 2394, 2386, 2393, 2385, 2392, 2384, 2391...
+## $ model          &lt;chr&gt; &quot;Aeroad CF SL Disc 8.0 Di2&quot;, &quot;Aeroad CF SLX Disc 9.0 ETAP&quot;, &quot;Aeroad CF SLX Disc 9.0 Di2&quot;, &quot;Aeroad CF SL Di...
+## $ model.year     &lt;dbl&gt; 2020, 2020, 2020, 2020, 2020, 2019, 2019, 2021, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020...
+## $ frame.material &lt;chr&gt; &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbo...
+## $ weight         &lt;dbl&gt; 7.60, 7.27, 7.10, 7.73, 7.83, 6.80, 6.80, 7.60, 7.30, 7.20, 7.30, 8.72, 8.73, 9.04, 8.97, 8.21, 8.20, 8.58...
+## $ price          &lt;dbl&gt; 4579, 6919, 6429, 5069, 3609, 6139, 5359, 2629, 3699, 3219, 2829, 1559, 1559, 1269, 1269, 1169, 1169, 969,...
+## $ category       &lt;chr&gt; &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Ra...
+## $ gender         &lt;chr&gt; &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;female&quot;, &quot;unise...
+## $ url            &lt;chr&gt; &quot;https://www.canyon.com/en-de/road-bikes/race-bikes/aeroad/aeroad-cf-sl-disc-8.0-di2/2875.html&quot;, &quot;https://...</code></pre>
+<pre class="r"><code>glimpse(orderlines_tbl)</code></pre>
+<pre><code>## Rows: 15,644
+## Columns: 7
+## $ ...1        &lt;chr&gt; &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;, &quot;14&quot;, &quot;15&quot;, &quot;16&quot;, &quot;17&quot;, &quot;18&quot;, &quot;19&quot;, &quot;20&quot;...
+## $ order.id    &lt;dbl&gt; 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 9, 9...
+## $ order.line  &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1, 2, 1,...
+## $ order.date  &lt;dttm&gt; 2015-01-07, 2015-01-07, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, ...
+## $ customer.id &lt;dbl&gt; 2, 2, 10, 10, 6, 6, 6, 6, 6, 22, 8, 8, 8, 8, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 16, 16...
+## $ product.id  &lt;dbl&gt; 2681, 2411, 2629, 2137, 2367, 1973, 2422, 2655, 2247, 2408, 2252, 2410, 2717, 2244, 2718, 2384, 2356, 2137, 2...
+## $ quantity    &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 3, 1, 2, 1...</code></pre>
+<pre class="r"><code>glimpse(bikeshops_tbl)</code></pre>
+<pre><code>## Rows: 30
+## Columns: 5
+## $ bikeshop.id &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+## $ name        &lt;chr&gt; &quot;Zum Goldenen Lenker&quot;, &quot;AlexandeRad&quot;, &quot;Fahrradladen 16&quot;, &quot;Bikestation Köln&quot;, &quot;Montimare&quot;, &quot;fahrschneller&quot;, &quot;R...
+## $ location    &lt;chr&gt; &quot;Berlin, Berlin&quot;, &quot;Hamburg, Hamburg&quot;, &quot;Munich, Bavaria&quot;, &quot;Cologne, North Rhine-Westphalia&quot;, &quot;Frankfurt, Hesse...
+## $ lat         &lt;dbl&gt; 52.51667, 53.57532, 48.15000, 50.93333, 50.11552, 48.78234, 51.22830, 51.51494, 51.45657, 53.07379, 52.38497,...
+## $ lng         &lt;dbl&gt; 13.400000, 10.015340, 11.583333, 6.950000, 8.684167, 9.180819, 6.793849, 7.465997, 7.012282, 8.826754, 9.7371...</code></pre>
+<pre class="r"><code># 4.0 Joining Data ----
+
+bike_orderlines_joined_tbl &lt;- orderlines_tbl %&gt;%
+  left_join(bikes_tbl, by = c(&quot;product.id&quot; = &quot;bike.id&quot;)) %&gt;%
+  left_join(bikeshops_tbl, by = c(&quot;customer.id&quot; = &quot;bikeshop.id&quot;))
+
+bike_orderlines_joined_tbl %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 15,644
+## Columns: 19
+## $ ...1           &lt;chr&gt; &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;, &quot;14&quot;, &quot;15&quot;, &quot;16&quot;, &quot;17&quot;, &quot;18&quot;, &quot;19&quot;, &quot;...
+## $ order.id       &lt;dbl&gt; 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 9...
+## $ order.line     &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1, 2,...
+## $ order.date     &lt;dttm&gt; 2015-01-07, 2015-01-07, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-1...
+## $ customer.id    &lt;dbl&gt; 2, 2, 10, 10, 6, 6, 6, 6, 6, 22, 8, 8, 8, 8, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 16,...
+## $ product.id     &lt;dbl&gt; 2681, 2411, 2629, 2137, 2367, 1973, 2422, 2655, 2247, 2408, 2252, 2410, 2717, 2244, 2718, 2384, 2356, 2137...
+## $ quantity       &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 3, 1, 2...
+## $ model          &lt;chr&gt; &quot;Spectral CF 7 WMN&quot;, &quot;Ultimate CF SLX Disc 8.0 ETAP&quot;, &quot;Neuron CF 8&quot;, &quot;Speedmax CF 7.0&quot;, &quot;Stitched 360 Pro&quot;...
+## $ model.year     &lt;dbl&gt; 2021, 2020, 2021, 2019, 2020, 2020, 2020, 2021, 2020, 2020, 2020, 2020, 2021, 2020, 2021, 2020, 2021, 2019...
+## $ frame.material &lt;chr&gt; &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;aluminium&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;aluminium&quot;, &quot;carbon&quot;, &quot;carbon&quot;, ...
+## $ weight         &lt;dbl&gt; 13.80, 7.44, 14.06, 8.80, 11.50, 8.80, 8.20, 8.85, 14.40, 6.50, 21.25, 7.35, 8.91, 15.75, 8.88, 8.20, 17.6...
+## $ price          &lt;dbl&gt; 3119, 5359, 2729, 1749, 1219, 1359, 2529, 1559, 3899, 6629, 2919, 4089, 2729, 2239, 3409, 1169, 3219, 1749...
+## $ category       &lt;chr&gt; &quot;Mountain - Trail - Spectral&quot;, &quot;Road - Race - Ultimate&quot;, &quot;Mountain - Trail - Neuron&quot;, &quot;Road - Triathlon Bi...
+## $ gender         &lt;chr&gt; &quot;female&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;female&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;femal...
+## $ url            &lt;chr&gt; &quot;https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/spectral-cf-7-wmn/2681.html&quot;, &quot;https://w...
+## $ name           &lt;chr&gt; &quot;AlexandeRad&quot;, &quot;AlexandeRad&quot;, &quot;WITT-RAD&quot;, &quot;WITT-RAD&quot;, &quot;fahrschneller&quot;, &quot;fahrschneller&quot;, &quot;fahrschneller&quot;, &quot;...
+## $ location       &lt;chr&gt; &quot;Hamburg, Hamburg&quot;, &quot;Hamburg, Hamburg&quot;, &quot;Bremen, Bremen&quot;, &quot;Bremen, Bremen&quot;, &quot;Stuttgart, Baden-Württemberg&quot;...
+## $ lat            &lt;dbl&gt; 53.57532, 53.57532, 53.07379, 53.07379, 48.78234, 48.78234, 48.78234, 48.78234, 48.78234, 48.37154, 51.514...
+## $ lng            &lt;dbl&gt; 10.015340, 10.015340, 8.826754, 8.826754, 9.180819, 9.180819, 9.180819, 9.180819, 9.180819, 10.898514, 7.4...</code></pre>
+<pre class="r"><code># 5.0 Wrangling Data ----
+bike_orderlines_joined_tbl %&gt;% 
+  select(category) %&gt;%
+  filter(str_detect(category, &quot;^Mountain&quot;)) %&gt;% 
+  unique()</code></pre>
+<pre><code>## # A tibble: 10 x 1
+##    category                         
+##    &lt;chr&gt;                            
+##  1 Mountain - Trail - Spectral      
+##  2 Mountain - Trail - Neuron        
+##  3 Mountain - Dirt Jump - Stitched  
+##  4 Mountain - Enduro - Torque       
+##  5 Mountain - Trail - Grand Canyon  
+##  6 Mountain - Cross-Country - Lux   
+##  7 Mountain - Enduro - Strive       
+##  8 Mountain - Downhill - Sender     
+##  9 Mountain - Fat Bikes - Dude      
+## 10 Mountain - Cross-Country - Exceed</code></pre>
+<pre class="r"><code>bike_orderlines_wrangled_tbl &lt;- bike_orderlines_joined_tbl %&gt;%
+  separate(col    = category,
+           into   = c(&quot;category.1&quot;, &quot;category.2&quot;, &quot;category.3&quot;),
+           sep    = &quot; - &quot;) %&gt;%
+  
+  mutate(total.price = price * quantity) %&gt;%
+  
+  select(-...1, -gender) %&gt;%
+  
+  select(-ends_with(&quot;.id&quot;)) %&gt;%
+  
+  bind_cols(bike_orderlines_joined_tbl %&gt;% select(order.id)) %&gt;% 
+  
+  select(order.id, contains(&quot;order&quot;), contains(&quot;model&quot;), contains(&quot;category&quot;),
+         price, quantity, total.price,
+         everything()) %&gt;%
+  
+  rename(bikeshop = name) %&gt;%
+  
+  set_names(names(.) %&gt;% str_replace_all(&quot;\\.&quot;, &quot;_&quot;))
+
+
+# 6.1 Sales by location ----
+
+# Step 1 - Manipulate
+
+sales_by_location_tbl &lt;- bike_orderlines_wrangled_tbl %&gt;%
+  
+  select(location, total_price) %&gt;%
+  
+separate(col = location,
+         into = c(&quot;city&quot;, &quot;state&quot;),
+         sep = &quot;,&quot;,
+         convert = T) %&gt;%
+  
+  group_by(state) %&gt;%
+  summarize(sales = sum(total_price)) %&gt;%
+  mutate(sales_text = scales::dollar(sales, big.mark = &quot;.&quot;, 
+                                     decimal.mark = &quot;,&quot;, 
+                                     prefix = &quot;&quot;, 
+                                     suffix = &quot; €&quot;))
+
+
+# Step 2 - Visualize
+
+sales_by_location_tbl %&gt;%
+  
+  ggplot(aes(x = state, y = sales)) +
+  
+  geom_col(fill = &quot;#4caf50&quot;,width = .45) +
+  
+  geom_text(aes(label = sales_text), size = 2,vjust = -1, hjust = 0.5) +
+  
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) +
+  
+  scale_y_continuous(labels = scales::dollar_format(big.mark = &quot;.&quot;, 
+                                                    decimal.mark = &quot;,&quot;, 
+                                                    prefix = &quot;&quot;, 
+                                                    suffix = &quot; €&quot;)) +
+  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  
+  expand_limits(y = 2.5e7)+
+  
+  labs(
+    title    = &quot;Revenue by location&quot;,
+    x = &quot;&quot;, 
+    y = &quot;Revenue&quot;
+  )</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+</div>
+<div id="sales-by-location-and-year" class="section level2">
+<h2><span class="header-section-number">1.2</span> Sales by location and year</h2>
+<pre class="r"><code># Data Science at TUHH ------------------------------------------------------
+# SALES ANALYSIS ----
+cat(&quot;\014&quot;) #to clear console</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code># 1.0 Load libraries ----
+library(tidyverse)
+
+library(readxl)
+
+
+# 2.0 Importing Files ----
+
+bikes_tbl      &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/bikes.xlsx&quot;)
+orderlines_tbl &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/orderlines.xlsx&quot;)
+
+#Not required, just for completeness
+bikeshops_tbl  &lt;- read_excel(&quot;00_data/01_bike_sales/01_raw_data/bikeshops.xlsx&quot;)
+
+# 3.0 Examining Data ----
+glimpse(bikes_tbl)</code></pre>
+<pre><code>## Rows: 231
+## Columns: 9
+## $ bike.id        &lt;dbl&gt; 2875, 2873, 2874, 2876, 2877, 2225, 2091, 2086, 2088, 2120, 2087, 2394, 2386, 2393, 2385, 2392, 2384, 2391...
+## $ model          &lt;chr&gt; &quot;Aeroad CF SL Disc 8.0 Di2&quot;, &quot;Aeroad CF SLX Disc 9.0 ETAP&quot;, &quot;Aeroad CF SLX Disc 9.0 Di2&quot;, &quot;Aeroad CF SL Di...
+## $ model.year     &lt;dbl&gt; 2020, 2020, 2020, 2020, 2020, 2019, 2019, 2021, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020...
+## $ frame.material &lt;chr&gt; &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbo...
+## $ weight         &lt;dbl&gt; 7.60, 7.27, 7.10, 7.73, 7.83, 6.80, 6.80, 7.60, 7.30, 7.20, 7.30, 8.72, 8.73, 9.04, 8.97, 8.21, 8.20, 8.58...
+## $ price          &lt;dbl&gt; 4579, 6919, 6429, 5069, 3609, 6139, 5359, 2629, 3699, 3219, 2829, 1559, 1559, 1269, 1269, 1169, 1169, 969,...
+## $ category       &lt;chr&gt; &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Race - Aeroad&quot;, &quot;Road - Ra...
+## $ gender         &lt;chr&gt; &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;female&quot;, &quot;unise...
+## $ url            &lt;chr&gt; &quot;https://www.canyon.com/en-de/road-bikes/race-bikes/aeroad/aeroad-cf-sl-disc-8.0-di2/2875.html&quot;, &quot;https://...</code></pre>
+<pre class="r"><code>glimpse(orderlines_tbl)</code></pre>
+<pre><code>## Rows: 15,644
+## Columns: 7
+## $ ...1        &lt;chr&gt; &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;, &quot;14&quot;, &quot;15&quot;, &quot;16&quot;, &quot;17&quot;, &quot;18&quot;, &quot;19&quot;, &quot;20&quot;...
+## $ order.id    &lt;dbl&gt; 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 9, 9...
+## $ order.line  &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1, 2, 1,...
+## $ order.date  &lt;dttm&gt; 2015-01-07, 2015-01-07, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, ...
+## $ customer.id &lt;dbl&gt; 2, 2, 10, 10, 6, 6, 6, 6, 6, 22, 8, 8, 8, 8, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 16, 16...
+## $ product.id  &lt;dbl&gt; 2681, 2411, 2629, 2137, 2367, 1973, 2422, 2655, 2247, 2408, 2252, 2410, 2717, 2244, 2718, 2384, 2356, 2137, 2...
+## $ quantity    &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 3, 1, 2, 1...</code></pre>
+<pre class="r"><code>glimpse(bikeshops_tbl)</code></pre>
+<pre><code>## Rows: 30
+## Columns: 5
+## $ bikeshop.id &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+## $ name        &lt;chr&gt; &quot;Zum Goldenen Lenker&quot;, &quot;AlexandeRad&quot;, &quot;Fahrradladen 16&quot;, &quot;Bikestation Köln&quot;, &quot;Montimare&quot;, &quot;fahrschneller&quot;, &quot;R...
+## $ location    &lt;chr&gt; &quot;Berlin, Berlin&quot;, &quot;Hamburg, Hamburg&quot;, &quot;Munich, Bavaria&quot;, &quot;Cologne, North Rhine-Westphalia&quot;, &quot;Frankfurt, Hesse...
+## $ lat         &lt;dbl&gt; 52.51667, 53.57532, 48.15000, 50.93333, 50.11552, 48.78234, 51.22830, 51.51494, 51.45657, 53.07379, 52.38497,...
+## $ lng         &lt;dbl&gt; 13.400000, 10.015340, 11.583333, 6.950000, 8.684167, 9.180819, 6.793849, 7.465997, 7.012282, 8.826754, 9.7371...</code></pre>
+<pre class="r"><code># 4.0 Joining Data ----
+
+bike_orderlines_joined_tbl &lt;- orderlines_tbl %&gt;%
+  left_join(bikes_tbl, by = c(&quot;product.id&quot; = &quot;bike.id&quot;)) %&gt;%
+  left_join(bikeshops_tbl, by = c(&quot;customer.id&quot; = &quot;bikeshop.id&quot;))
+
+bike_orderlines_joined_tbl %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 15,644
+## Columns: 19
+## $ ...1           &lt;chr&gt; &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, &quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;, &quot;13&quot;, &quot;14&quot;, &quot;15&quot;, &quot;16&quot;, &quot;17&quot;, &quot;18&quot;, &quot;19&quot;, &quot;...
+## $ order.id       &lt;dbl&gt; 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 9, 9...
+## $ order.line     &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1, 2,...
+## $ order.date     &lt;dttm&gt; 2015-01-07, 2015-01-07, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-10, 2015-01-1...
+## $ customer.id    &lt;dbl&gt; 2, 2, 10, 10, 6, 6, 6, 6, 6, 22, 8, 8, 8, 8, 16, 16, 16, 16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 16,...
+## $ product.id     &lt;dbl&gt; 2681, 2411, 2629, 2137, 2367, 1973, 2422, 2655, 2247, 2408, 2252, 2410, 2717, 2244, 2718, 2384, 2356, 2137...
+## $ quantity       &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 3, 1, 2...
+## $ model          &lt;chr&gt; &quot;Spectral CF 7 WMN&quot;, &quot;Ultimate CF SLX Disc 8.0 ETAP&quot;, &quot;Neuron CF 8&quot;, &quot;Speedmax CF 7.0&quot;, &quot;Stitched 360 Pro&quot;...
+## $ model.year     &lt;dbl&gt; 2021, 2020, 2021, 2019, 2020, 2020, 2020, 2021, 2020, 2020, 2020, 2020, 2021, 2020, 2021, 2020, 2021, 2019...
+## $ frame.material &lt;chr&gt; &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;aluminium&quot;, &quot;carbon&quot;, &quot;carbon&quot;, &quot;aluminium&quot;, &quot;carbon&quot;, &quot;carbon&quot;, ...
+## $ weight         &lt;dbl&gt; 13.80, 7.44, 14.06, 8.80, 11.50, 8.80, 8.20, 8.85, 14.40, 6.50, 21.25, 7.35, 8.91, 15.75, 8.88, 8.20, 17.6...
+## $ price          &lt;dbl&gt; 3119, 5359, 2729, 1749, 1219, 1359, 2529, 1559, 3899, 6629, 2919, 4089, 2729, 2239, 3409, 1169, 3219, 1749...
+## $ category       &lt;chr&gt; &quot;Mountain - Trail - Spectral&quot;, &quot;Road - Race - Ultimate&quot;, &quot;Mountain - Trail - Neuron&quot;, &quot;Road - Triathlon Bi...
+## $ gender         &lt;chr&gt; &quot;female&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;female&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;unisex&quot;, &quot;femal...
+## $ url            &lt;chr&gt; &quot;https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/spectral-cf-7-wmn/2681.html&quot;, &quot;https://w...
+## $ name           &lt;chr&gt; &quot;AlexandeRad&quot;, &quot;AlexandeRad&quot;, &quot;WITT-RAD&quot;, &quot;WITT-RAD&quot;, &quot;fahrschneller&quot;, &quot;fahrschneller&quot;, &quot;fahrschneller&quot;, &quot;...
+## $ location       &lt;chr&gt; &quot;Hamburg, Hamburg&quot;, &quot;Hamburg, Hamburg&quot;, &quot;Bremen, Bremen&quot;, &quot;Bremen, Bremen&quot;, &quot;Stuttgart, Baden-Württemberg&quot;...
+## $ lat            &lt;dbl&gt; 53.57532, 53.57532, 53.07379, 53.07379, 48.78234, 48.78234, 48.78234, 48.78234, 48.78234, 48.37154, 51.514...
+## $ lng            &lt;dbl&gt; 10.015340, 10.015340, 8.826754, 8.826754, 9.180819, 9.180819, 9.180819, 9.180819, 9.180819, 10.898514, 7.4...</code></pre>
+<pre class="r"><code># 5.0 Wrangling Data ----
+bike_orderlines_joined_tbl %&gt;% 
+  select(category) %&gt;%
+  filter(str_detect(category, &quot;^Mountain&quot;)) %&gt;% 
+  unique()</code></pre>
+<pre><code>## # A tibble: 10 x 1
+##    category                         
+##    &lt;chr&gt;                            
+##  1 Mountain - Trail - Spectral      
+##  2 Mountain - Trail - Neuron        
+##  3 Mountain - Dirt Jump - Stitched  
+##  4 Mountain - Enduro - Torque       
+##  5 Mountain - Trail - Grand Canyon  
+##  6 Mountain - Cross-Country - Lux   
+##  7 Mountain - Enduro - Strive       
+##  8 Mountain - Downhill - Sender     
+##  9 Mountain - Fat Bikes - Dude      
+## 10 Mountain - Cross-Country - Exceed</code></pre>
+<pre class="r"><code>bike_orderlines_wrangled_tbl &lt;- bike_orderlines_joined_tbl %&gt;%
+  separate(col    = category,
+           into   = c(&quot;category.1&quot;, &quot;category.2&quot;, &quot;category.3&quot;),
+           sep    = &quot; - &quot;) %&gt;%
+  
+  mutate(total.price = price * quantity) %&gt;%
+  
+  select(-...1, -gender) %&gt;%
+  
+  select(-ends_with(&quot;.id&quot;)) %&gt;%
+  
+  bind_cols(bike_orderlines_joined_tbl %&gt;% select(order.id)) %&gt;% 
+  
+  select(order.id, contains(&quot;order&quot;), contains(&quot;model&quot;), contains(&quot;category&quot;),
+         price, quantity, total.price,
+         everything()) %&gt;%
+  
+  rename(bikeshop = name) %&gt;%
+  
+  set_names(names(.) %&gt;% str_replace_all(&quot;\\.&quot;, &quot;_&quot;))
+
+
+# 6.1 Sales by location and year  ----
+
+# Step 1 - Manipulate
+
+library(lubridate)
+sales_by_year_location_tbl &lt;- bike_orderlines_wrangled_tbl %&gt;%
+  
+  select(order_date, location, total_price, ) %&gt;%
+  
+  mutate(year = year(order_date)) %&gt;%
+  
+  separate(col = location,
+           into = c(&quot;city&quot;, &quot;state&quot;),
+           sep = &quot;,&quot;,
+           convert = T) %&gt;%
+  
+  group_by(state, year) %&gt;%
+  summarize(sales = sum(total_price)) %&gt;%
+  ungroup() %&gt;%
+  
+  mutate(sales_text = scales::dollar(sales, big.mark = &quot;.&quot;, 
+                                     decimal.mark = &quot;,&quot;, 
+                                     prefix = &quot;&quot;, 
+                                     suffix = &quot; €&quot;))
+
+# Step 2 - Visualize
+
+sales_by_year_location_tbl %&gt;%
+  
+  # Set up x, y, fill
+  ggplot(aes(x = year, y = sales, fill = state)) +
+  
+  # Geometries
+  geom_col() + # Run up to here to get a stacked bar plot
+  
+  # Facet
+  facet_wrap(~ state) +
+  #geom_smooth(method = &quot;lm&quot;, se = FALSE)+
+  
+  
+  scale_y_continuous(labels = scales::dollar_format(big.mark = &quot;.&quot;, 
+                                                    decimal.mark = &quot;,&quot;, 
+                                                    prefix = &quot;&quot;, 
+                                                    suffix = &quot; €&quot;)) +
+  labs(
+    title = &quot;Revenue by year and location&quot;,
+    fill = &quot;Main category&quot; # Changes the legend name
+  )</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+</div>
+<div id="challenge-data-aquisition" class="section level1">
+<h1><span class="header-section-number">2</span> Challenge Data Aquisition</h1>
+<div id="indian-premier-league-ipl" class="section level2">
+<h2><span class="header-section-number">2.1</span> Indian Premier League (IPL)</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code># WEBSCRAPING ----
+
+# 1.0 LIBRARIES ----
+
 library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
 library(rvest)     # HTML Hacking &amp; Web Scraping
 library(xopen)     # Quickly opening URLs
 library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)   # character string/text processing
+library(httr)      #GET() function
 library(knitr)
 
+# 1.1 COLLECT PRODUCT FAMILIES ----
+url  &lt;- &quot;https://www.iplt20.com/points-table/2020&quot;
 
-
-  url  &lt;- &quot;https://economictimes.indiatimes.com/et500&quot;
-  html &lt;- url %&gt;% 
+# Read in the HTML for the entire webpage
+html &lt;- url %&gt;% 
   read_html()
 
-       #Take country name
-       Rank &lt;-  html %&gt;% 
-       html_nodes(css = &quot;.Rnk1.textC&quot;) %&gt;%
-       html_text()
-       as.numeric()</code></pre>
-<pre><code>## numeric(0)</code></pre>
-<pre class="r"><code>       #Take company name
-       Company_Name &lt;- html %&gt;% 
-       html_nodes( &quot;.comp&quot;) %&gt;% 
-       html_text()
-       
-       #Market capitalisation
-       Market_cap &lt;- html %&gt;% 
-       html_nodes( &quot;.textR&quot;) %&gt;% 
-       html_text() %&gt;%
-       stringr::str_replace_all(pattern = &quot;,&quot;, replacement = &quot;&quot;)%&gt;%
-       as.numeric()
-      
-       
-       
-       
-       
-       company_table1 &lt;- tibble(Rank, Company_Name)
-       
-       company_table2 &lt;- tibble(Market_cap) %&gt;% 
-       slice(1,4,7,10,13,16,19,22,25,28) %&gt;%
-       set_names(c(&quot;Market_capitalisation&quot;))
 
-       
-       company_table3 &lt;- tibble(Market_cap) %&gt;% 
-       slice(2,5,8,11,14,17,20,23,26,29) %&gt;%
-       set_names(c(&quot;Revenue_change_%&quot;))
-       
-       company_table4 &lt;- tibble(Market_cap) %&gt;% 
-       slice(3,6,9,12,15,18,21,24,27,30)%&gt;%
-       set_names(c(&quot;PAT_change_%&quot;))
-       
-      
-       Top10_Companies_in_India &lt;-   tibble(company_table1,company_table2,company_table3,company_table4)%&gt;%
+team &lt;- html %&gt;%
+  html_nodes(&quot;.standings-table__team.standings-table__freeze &gt; a&quot;) %&gt;%
+  html_text() %&gt;%
+  
+  stringr::str_extract(&quot;(?=)[:alpha:]+.*&quot; ) %&gt;%
+  
+   enframe(name = &quot;list5&quot;, value = &quot;team&quot;)
 
-       mutate(Market_capitalisation = scales::dollar(Market_capitalisation, big.mark = &quot;.&quot;, decimal.mark = &quot;,&quot;, prefix = &quot;&quot;, suffix = &quot; Rs.crores&quot;))
-       
-  kable(Top10_Companies_in_India,caption=&quot;Top 10 companies in India&quot;)</code></pre>
+RR &lt;- html %&gt;%
+  html_nodes(&quot;td&quot;) %&gt;%
+  html_text() %&gt;%
+  enframe(name = &quot;list&quot;, value = &quot;Net RR&quot;) %&gt;%
+  slice(8,20,32,44,56,68,80,92)
+
+
+position &lt;- html %&gt;%
+   html_nodes(&quot;.standings-table__freeze.u-text-center&quot;) %&gt;%
+   html_text() %&gt;%
+   enframe(name = &quot;list1&quot;, value = &quot;position&quot;)
+
+team_url &lt;- html %&gt;%
+  html_nodes(&quot;.standings-table__freeze &gt; a&quot;) %&gt;%
+  html_attr(&#39;href&#39;) %&gt;%
+  enframe(name = &quot;list2&quot;, value = &quot;subdirectory&quot;) %&gt;%
+  # Add the domain, because we will get only the subdirectories
+  mutate(
+    url = glue(&quot;https://www.iplt20.com{subdirectory}&quot;))
+
+points &lt;- html %&gt;%
+  html_nodes(&quot;.js-points&quot;) %&gt;%
+  html_text() %&gt;%
+  as.numeric() %&gt;%
+  enframe(name = &quot;list3&quot;, value = &quot;points&quot;)
+
+played &lt;- html %&gt;%
+  html_nodes(&quot;.standings-table__padded&quot;) %&gt;%
+  html_text()%&gt;%
+  enframe(name = &quot;list4&quot;, value = &quot;played&quot;) %&gt;%
+  slice(2:9)
+
+
+
+data &lt;- html %&gt;%
+  html_nodes(&quot;.standings-table__optional&quot;) %&gt;%
+  html_text()
+
+data_1_tbl &lt;- tibble(data) %&gt;%
+     slice(7:12)
+data_1_row &lt;- as.data.frame(t(data_1_tbl))
+
+data_2_tbl &lt;-  tibble(data) %&gt;%
+  slice(15:20)
+data_2_row  &lt;- as.data.frame(t(data_2_tbl))
+
+data_3_tbl &lt;-  tibble(data) %&gt;%
+  slice(23:28)
+data_3_row  &lt;-  as.data.frame(t(data_3_tbl))
+
+data_4_tbl  &lt;-  tibble(data) %&gt;%
+  slice(31:36)
+data_4_row &lt;-     as.data.frame(t(data_4_tbl))
+
+data_5_tbl &lt;-  tibble(data) %&gt;%
+  slice(39:44)
+data_5_row &lt;-     as.data.frame(t(data_5_tbl))
+
+data_6_tbl &lt;-  tibble(data) %&gt;%
+  slice(47:52)
+data_6_row  &lt;-     as.data.frame(t(data_6_tbl))
+
+data_7_tbl &lt;-  tibble(data) %&gt;%
+  slice(55:60)
+data_7_row  &lt;-     as.data.frame(t(data_7_tbl))
+
+data_8_tbl &lt;-  tibble(data) %&gt;%
+  slice(63:68)
+data_8_row  &lt;-     as.data.frame(t(data_8_tbl))
+
+full_data &lt;- data_1_row %&gt;%
+  bind_rows(data_2_row,data_3_row,data_4_row,data_5_row,data_6_row,data_7_row,data_8_row) %&gt;%
+  set_names(c(&quot;Won&quot;,&quot;Lost&quot;,&quot;Tied&quot;,&quot;N/R&quot;,&quot;For&quot;,&quot;Against&quot;))
+
+points_tbl &lt;- tibble(position,team,played,full_data,RR,points,team_url) %&gt;%
+ select(position,team,played,Won,Lost,Tied,&#39;N/R&#39;,&#39;Net RR&#39;,For,Against,points,url)
+kable(points_tbl, caption = &quot;IPL 2020 Points Table&quot;)</code></pre>
 <table>
-<caption>Top 10 companies in India</caption>
+<caption>IPL 2020 Points Table</caption>
+<colgroup>
+<col width="5%" />
+<col width="17%" />
+<col width="4%" />
+<col width="2%" />
+<col width="3%" />
+<col width="3%" />
+<col width="2%" />
+<col width="4%" />
+<col width="7%" />
+<col width="7%" />
+<col width="4%" />
+<col width="36%" />
+</colgroup>
 <thead>
 <tr class="header">
-<th align="left">Rank</th>
-<th align="left">Company_Name</th>
-<th align="left">Market_capitalisation</th>
-<th align="right">Revenue_change_%</th>
-<th align="right">PAT_change_%</th>
+<th align="left">position</th>
+<th align="left">team</th>
+<th align="left">played</th>
+<th align="left">Won</th>
+<th align="left">Lost</th>
+<th align="left">Tied</th>
+<th align="left">N/R</th>
+<th align="left">Net RR</th>
+<th align="left">For</th>
+<th align="left">Against</th>
+<th align="right">points</th>
+<th align="left">url</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">1</td>
-<td align="left">Reliance Industries Ltd.</td>
-<td align="left">949.280 Rs.crores</td>
-<td align="right">43.36</td>
-<td align="right">9.74</td>
+<td align="left">Q</td>
+<td align="left">Mumbai Indians</td>
+<td align="left">14</td>
+<td align="left">9</td>
+<td align="left">5</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">+1.107</td>
+<td align="left">2,378/262.2</td>
+<td align="left">2,187/274.5</td>
+<td align="right">18</td>
+<td align="left"><a href="https://www.iplt20.com/teams/mumbai-indians" class="uri">https://www.iplt20.com/teams/mumbai-indians</a></td>
 </tr>
 <tr class="even">
-<td align="left">2</td>
-<td align="left">Indian Oil Corporation Ltd.</td>
-<td align="left">125.768 Rs.crores</td>
-<td align="right">24.99</td>
-<td align="right">-21.69</td>
+<td align="left">Q</td>
+<td align="left">Delhi Capitals</td>
+<td align="left">14</td>
+<td align="left">8</td>
+<td align="left">6</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.109</td>
+<td align="left">2,289/278.5</td>
+<td align="left">2,271/273</td>
+<td align="right">16</td>
+<td align="left"><a href="https://www.iplt20.com/teams/delhi-capitals" class="uri">https://www.iplt20.com/teams/delhi-capitals</a></td>
 </tr>
 <tr class="odd">
-<td align="left">3</td>
-<td align="left">Oil And Natural Gas Corporation Ltd.</td>
-<td align="left">172.136 Rs.crores</td>
-<td align="right">29.97</td>
-<td align="right">37.95</td>
+<td align="left">Q</td>
+<td align="left">Sunrisers Hyderabad</td>
+<td align="left">14</td>
+<td align="left">7</td>
+<td align="left">7</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">+0.608</td>
+<td align="left">2,225/269.3</td>
+<td align="left">2,125/277.5</td>
+<td align="right">14</td>
+<td align="left"><a href="https://www.iplt20.com/teams/sunrisers-hyderabad" class="uri">https://www.iplt20.com/teams/sunrisers-hyderabad</a></td>
 </tr>
 <tr class="even">
-<td align="left">4</td>
-<td align="left">State Bank of India</td>
-<td align="left">290.141 Rs.crores</td>
-<td align="right">7.88</td>
-<td align="right">NA</td>
+<td align="left">Q</td>
+<td align="left">Royal Challengers Bangalore</td>
+<td align="left">14</td>
+<td align="left">7</td>
+<td align="left">7</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.172</td>
+<td align="left">2,147/272.2</td>
+<td align="left">2,183/271</td>
+<td align="right">14</td>
+<td align="left"><a href="https://www.iplt20.com/teams/royal-challengers-bangalore" class="uri">https://www.iplt20.com/teams/royal-challengers-bangalore</a></td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="left">Tata Motors Ltd.</td>
-<td align="left">48.588 Rs.crores</td>
-<td align="right">2.06</td>
-<td align="right">NA</td>
+<td align="left">Kolkata Knight Riders</td>
+<td align="left">14</td>
+<td align="left">7</td>
+<td align="left">7</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.214</td>
+<td align="left">2,219/278</td>
+<td align="left">2,206/269.1</td>
+<td align="right">14</td>
+<td align="left"><a href="https://www.iplt20.com/teams/kolkata-knight-riders" class="uri">https://www.iplt20.com/teams/kolkata-knight-riders</a></td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="left">Bharat Petroleum Corporation Ltd.</td>
-<td align="left">111.551 Rs.crores</td>
-<td align="right">26.10</td>
-<td align="right">-13.39</td>
+<td align="left">Kings XI Punjab</td>
+<td align="left">14</td>
+<td align="left">6</td>
+<td align="left">8</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.162</td>
+<td align="left">2,335/277.5</td>
+<td align="left">2,343/273.3</td>
+<td align="right">12</td>
+<td align="left"><a href="https://www.iplt20.com/teams/kings-xi-punjab" class="uri">https://www.iplt20.com/teams/kings-xi-punjab</a></td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="left">Hindustan Petroleum Corporation Ltd.</td>
-<td align="left">45.237 Rs.crores</td>
-<td align="right">24.94</td>
-<td align="right">-7.31</td>
+<td align="left">Chennai Super Kings</td>
+<td align="left">14</td>
+<td align="left">6</td>
+<td align="left">8</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.455</td>
+<td align="left">2,191/274.3</td>
+<td align="left">2,275/269.4</td>
+<td align="right">12</td>
+<td align="left"><a href="https://www.iplt20.com/teams/chennai-super-kings" class="uri">https://www.iplt20.com/teams/chennai-super-kings</a></td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="left">Rajesh Exports Ltd.</td>
-<td align="left">20.200 Rs.crores</td>
-<td align="right">-6.35</td>
-<td align="right">2.08</td>
-</tr>
-<tr class="odd">
-<td align="left">9</td>
-<td align="left">Tata Steel Ltd.</td>
-<td align="left">45.759 Rs.crores</td>
-<td align="right">15.42</td>
-<td align="right">-23.94</td>
-</tr>
-<tr class="even">
-<td align="left">10</td>
-<td align="left">Coal India Ltd.</td>
-<td align="left">126.224 Rs.crores</td>
-<td align="right">14.04</td>
-<td align="right">148.09</td>
+<td align="left">Rajasthan Royals</td>
+<td align="left">14</td>
+<td align="left">6</td>
+<td align="left">8</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">-0.569</td>
+<td align="left">2,288/272.4</td>
+<td align="left">2,482/277</td>
+<td align="right">12</td>
+<td align="left"><a href="https://www.iplt20.com/teams/rajasthan-royals" class="uri">https://www.iplt20.com/teams/rajasthan-royals</a></td>
 </tr>
 </tbody>
 </table>
-<p>Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left.</p>
-<div id="second-level-header" class="section level2">
-<h2><span class="header-section-number">1.1</span> Second level header</h2>
-<p>You can add more headers by adding more hashtags. These won’t be put into the table of contents</p>
-<div id="third-level-header" class="section level3">
-<h3><span class="header-section-number">1.1.1</span> third level header</h3>
-<p>Here’s an even lower level header</p>
+</div>
+<div id="web-scraping---mtb-roseikes" class="section level2">
+<h2><span class="header-section-number">2.2</span> Web Scraping - MTB Roseikes</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code># WEBSCRAPING ----
+
+# 1.0 LIBRARIES ----
+
+library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking &amp; Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)   # character string/text processing
+library(httr)      #GET() function
+library(knitr)
+
+# 1.1 COLLECT PRODUCT FAMILIES ----
+
+url_home          &lt;- &quot;https://www.rosebikes.com/&quot;
+#xopen(url_home) # Open links directly from RStudio to inspect them
+
+# Read in the HTML for the entire webpage
+html_home         &lt;- read_html(url_home)
+
+
+
+# Extract the urls from the href attribute
+bike_category_tbl &lt;- html_home %&gt;%
+  
+  # Select nodes by the ids
+  html_nodes(css = &quot;.main-navigation-category-with-tiles__item &gt; a&quot;) %&gt;%
+  html_attr(&#39;href&#39;) %&gt;%
+  
+  
+  discard(.p = ~stringr::str_detect(.x,&quot;sale&quot;)) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;subdirectory&quot;) %&gt;%
+  
+  
+  # Add the domain, because we will get only the subdirectories
+  mutate(
+    url = glue(&quot;https://www.rosebikes.com{subdirectory}&quot;)
+  ) %&gt;%
+  
+  # Some categories are listed multiple times.
+  # We only need unique values
+  distinct(url)
+
+# 2.0 COLLECT BIKE DATA ----
+
+# 2.1 Get URL for each bike of the Product categories
+
+# select first bike category url  
+bike_category_url &lt;- bike_category_tbl$url[1]
+
+# Get the URLs for the bikes of the first category
+html_bike_category  &lt;- read_html(bike_category_url)
+
+bike_url_tbl        &lt;- html_bike_category %&gt;%
+  
+  # Select nodes by the ids
+  html_nodes(css = &quot;.row.align-middle &gt; a&quot;) %&gt;%
+  
+  html_attr(&#39;href&#39;) %&gt;%
+  
+  enframe(name = &quot;position1&quot;, value = &quot;sub&quot;) %&gt;%
+
+# Add the domain, because we will get only the subdirectories
+mutate(
+  url = glue(&quot;https://www.rosebikes.com{sub}&quot;)) %&gt;%
+  
+  # Some categories are listed multiple times.
+  # We only need unique values
+  distinct(url)
+
+
+# 2.1.2 Extract the descriptions (since we have retrieved the data already)
+bike_desc_tbl &lt;- html_bike_category %&gt;%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes(&quot;.catalog-category-bikes__subtitle&quot;) %&gt;%
+  
+  # Extract the content of the attribute content
+  html_text() %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position2&quot;, value = &quot;description&quot;)
+
+
+
+# 2.1.2 Extract the name (since we have retrieved the data already)
+bike_name_tbl &lt;- html_bike_category %&gt;%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes(&quot;.catalog-category-bikes__title &gt; span&quot;) %&gt;%
+  
+  # Extract the content of the attribute content
+  html_text() %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position3&quot;, value = &quot;name&quot;)
+ 
+  
+
+
+# 2.1.2 Extract the name (since we have retrieved the data already)
+bike_price_tbl &lt;- html_bike_category %&gt;%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes(&quot;.catalog-category-bikes__price&quot;) %&gt;%
+  
+  # Extract the content of the attribute content
+  html_text() %&gt;%
+  
+  stringr::str_extract(&quot;(?=)[:alpha:]+.*&quot; ) %&gt;% 
+  # as.numeric()%&gt;%
+
+  # Convert vector to tibble
+  enframe(name = &quot;position4&quot;, value = &quot;price&quot;)
+
+bike_new &lt;- tibble(bike_url_tbl , bike_price_tbl, bike_name_tbl , bike_desc_tbl) %&gt;%
+  select(name,description,price,url)
+kable(bike_new, caption = &quot;MTB Bike Table&quot;)</code></pre>
+<table>
+<caption>MTB Bike Table</caption>
+<colgroup>
+<col width="11%" />
+<col width="37%" />
+<col width="9%" />
+<col width="42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">name</th>
+<th align="left">description</th>
+<th align="left">price</th>
+<th align="left">url</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">GROUND CONTROL</td>
+<td align="left">The versatile all-rounder for fun on tours and trails</td>
+<td align="left">from €1,699.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/trail-/-enduro/ground-control" class="uri">https://www.rosebikes.com/bikes/mtb/trail-/-enduro/ground-control</a></td>
+</tr>
+<tr class="even">
+<td align="left">ROOT MILLER</td>
+<td align="left">Made for intense lines on technically demanding terrain</td>
+<td align="left">from €1,999.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/trail-/-enduro/root-miller" class="uri">https://www.rosebikes.com/bikes/mtb/trail-/-enduro/root-miller</a></td>
+</tr>
+<tr class="odd">
+<td align="left">PIKES PEAK</td>
+<td align="left">Agile carbon trail bike with downhill DNA</td>
+<td align="left">from €3,099.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/trail-/-enduro/pikes-peak" class="uri">https://www.rosebikes.com/bikes/mtb/trail-/-enduro/pikes-peak</a></td>
+</tr>
+<tr class="even">
+<td align="left">THE BRUCE</td>
+<td align="left">Our “most wanted” dirtbike</td>
+<td align="left">NA</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/dirt/the-bruce" class="uri">https://www.rosebikes.com/bikes/mtb/dirt/the-bruce</a></td>
+</tr>
+<tr class="odd">
+<td align="left">COUNT SOLO</td>
+<td align="left">The best-selling hardtail for off-road and casual rides</td>
+<td align="left">NA</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/cross-country/count-solo" class="uri">https://www.rosebikes.com/bikes/mtb/cross-country/count-solo</a></td>
+</tr>
+<tr class="even">
+<td align="left">PSYCHO PATH</td>
+<td align="left">The light carbon hardtrail for high speed while off-roading</td>
+<td align="left">from €1,849.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/cross-country/psycho-path" class="uri">https://www.rosebikes.com/bikes/mtb/cross-country/psycho-path</a></td>
+</tr>
+<tr class="odd">
+<td align="left">THRILL HILL</td>
+<td align="left">A full-suspension carbon race bike for challenging routes</td>
+<td align="left">from €2,599.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/cross-country/thrill-hill" class="uri">https://www.rosebikes.com/bikes/mtb/cross-country/thrill-hill</a></td>
+</tr>
+<tr class="even">
+<td align="left">THRILL HILL TRAIL</td>
+<td align="left">More travel for the fast carbon road bike</td>
+<td align="left">from €2,899.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/cross-country/thrill-hill-trail" class="uri">https://www.rosebikes.com/bikes/mtb/cross-country/thrill-hill-trail</a></td>
+</tr>
+<tr class="odd">
+<td align="left">SOUL FIRE</td>
+<td align="left">Your drop into the world of free ride mountain biking</td>
+<td align="left">from €2,149.00</td>
+<td align="left"><a href="https://www.rosebikes.com/bikes/mtb/freeride/soul-fire" class="uri">https://www.rosebikes.com/bikes/mtb/freeride/soul-fire</a></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
+<div id="data-wrangling" class="section level1">
+<h1><span class="header-section-number">3</span> Data Wrangling</h1>
+<div id="patents" class="section level2">
+<h2><span class="header-section-number">3.1</span> Patents</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code>library(vroom)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(ggthemes)
+library(lubridate)
+library(ggrepel)
+library(maps)
+library(readr)
+library(scales)
+library(lubridate)</code></pre>
+<pre class="r"><code>col_types &lt;- list(
+  id = col_character(),
+  type = col_character(),
+  number = col_character(),
+  country = col_character(),
+  date = col_date(&quot;%Y-%m-%d&quot;),
+  abstract = col_character(),
+  title = col_character(),
+  kind = col_character(),
+  num_claims = col_double(),
+  filename = col_character(),
+  withdrawn = col_double()
+)
+
+patent_tbl &lt;- vroom(
+  file       = &quot;00_data/wrangling data/patent.tsv&quot;,
+  delim      = &quot;\t&quot;,
+  col_types  = col_types,
+  na         = c(&quot;&quot;, &quot;NA&quot;, &quot;NULL&quot;)
+)
+
+
+col_types &lt;- list(
+  id = col_character(),
+  type = col_double(),
+  name_first = col_character(),
+  name_last = col_character(),
+  organization = col_character()
+)
+
+
+assignee_tbl &lt;- vroom(
+  file       = &quot;00_data/wrangling data/assignee.tsv&quot;,
+  delim      = &quot;\t&quot;,
+  col_types  = col_types,
+  na         = c(&quot;&quot;, &quot;NA&quot;, &quot;NULL&quot;)
+)
+
+
+
+col_types &lt;- list(
+  patent_id = col_character(),
+  assignee_id = col_character(),
+  location_id = col_character()
+)
+
+patent_assignee_tbl &lt;- vroom(
+  file       = &quot;00_data/wrangling data/patent_assignee.tsv&quot;,
+  delim      = &quot;\t&quot;,
+  col_types  = col_types,
+  na         = c(&quot;&quot;, &quot;NA&quot;, &quot;NULL&quot;)
+)
+
+col_types &lt;- list(
+  uuid = col_character(),
+  patent_id = col_character(),
+  mainclass_id = col_character(),
+  subclass_id = col_character(),
+  sequence = col_double()
+)
+
+uspc_tbl &lt;- vroom(
+  file       = &quot;00_data/wrangling data/uspc.tsv&quot;,
+  delim      = &quot;\t&quot;,
+  col_types  = col_types,
+  na         = c(&quot;&quot;, &quot;NA&quot;, &quot;NULL&quot;)
+)
+
+Patent_Dominance_top_10_tbl &lt;- left_join(x=assignee_tbl, y=patent_assignee_tbl, by = c(&quot;id&quot; = &quot;assignee_id&quot;)) %&gt;%
+   filter(type==2) %&gt;%
+   mutate(count=1L) %&gt;%
+   group_by(id, organization,name_first,name_last)%&gt;%
+   summarise(number_of_patents=sum(count))%&gt;%
+   arrange(desc(number_of_patents))%&gt;%
+   head(n=10)
+
+combined_tbl_1 &lt;- left_join(x=assignee_tbl, y=patent_assignee_tbl, by = c(&quot;id&quot; = &quot;assignee_id&quot;))
+ 
+new_patent_tbl  &lt;- patent_tbl %&gt;% 
+  select(date,number)
+  
+recent_patent_acitivity &lt;- left_join(x=combined_tbl_1, y=new_patent_tbl, by = c(&quot;patent_id&quot; = &quot;number&quot;))  %&gt;%  
+  filter(type==2) %&gt;%
+  mutate(year=year(date)) %&gt;%  
+  filter(year==2019) %&gt;%
+  mutate(count=1L) %&gt;%
+  group_by(organization,year)%&gt;%
+  summarise(new_granted_patents =sum(count))%&gt;%
+  arrange(desc(new_granted_patents))%&gt;%
+  head(n=10)
+
+new_uspc_tbl &lt;- left_join(x=combined_tbl_1, y=uspc_tbl) 
+
+innovative_tech_sector&lt;-  new_uspc_tbl %&gt;%  filter(type==2 | type==3) %&gt;%
+                          mutate(count=1L) %&gt;%
+                          group_by(organization,type)%&gt;%
+                          summarise( Number_patents=sum(count))%&gt;%
+                          arrange(desc(Number_patents))%&gt;%
+                          head(n=10)
+
+tech_main_classes&lt;-  new_uspc_tbl %&gt;%  filter(type==2 | type==3) %&gt;%
+                          mutate(count=1L) %&gt;%
+                          group_by(patent_id, mainclass_id)%&gt;%
+                          summarise(tech_main_class =sum(count))%&gt;%
+                          arrange(desc(tech_main_class))%&gt;%
+                          na.omit(mainclass_id)%&gt;%
+                          head(n=5)
+
+#writing to local disk
+
+write_rds(Patent_Dominance_top_10_tbl,&quot;00_data/wrangling data/Patent_Dominance_top_10_tbl.rds&quot;)
+
+write_rds(recent_patent_acitivity,&quot;00_data/wrangling data/recent_patent_acitivity.rds&quot;)
+
+write_rds(innovative_tech_sector,&quot;00_data/wrangling data/innovative_tech_sector.rds&quot;)
+
+write_rds(tech_main_classes,&quot;00_data/wrangling data/tech_main_classes.rds&quot;)</code></pre>
+<pre class="r"><code>library(readr)
+Patent_Dominance_top_10_tbl &lt;- read_rds(&quot;00_data/wrangling data/Patent_Dominance_top_10_tbl.rds&quot;)
+recent_patent_acitivity &lt;- read_rds(&quot;00_data/wrangling data/recent_patent_acitivity.rds&quot;)
+innovative_tech_sector &lt;- read_rds(&quot;00_data/wrangling data/innovative_tech_sector.rds&quot;)
+tech_main_classes &lt;- read_rds(&quot;00_data/wrangling data/tech_main_classes.rds&quot;)
+
+kable(Patent_Dominance_top_10_tbl, caption = &quot;Patent Dominance - Top 10 US companies with the most assigned/granted patents&quot;)</code></pre>
+<table style="width:100%;">
+<caption>Patent Dominance - Top 10 US companies with the most assigned/granted patents</caption>
+<colgroup>
+<col width="23%" />
+<col width="40%" />
+<col width="10%" />
+<col width="9%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="left">organization</th>
+<th align="left">name_first</th>
+<th align="left">name_last</th>
+<th align="right">number_of_patents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">org_ONzMjdbZXiKfw4L0cXl6</td>
+<td align="left">International Business Machines Corporation</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">139091</td>
+</tr>
+<tr class="even">
+<td align="left">org_rWEJSmVQtQg24yFJqVRb</td>
+<td align="left">General Electric Company</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">47121</td>
+</tr>
+<tr class="odd">
+<td align="left">org_OrmhECOcsM3rq5b7Pxfe</td>
+<td align="left">Intel Corporation</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">42156</td>
+</tr>
+<tr class="even">
+<td align="left">org_sCPx37zDCUvOnx2ptLAe</td>
+<td align="left">Hewlett-Packard Development Company, L.P.</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">35572</td>
+</tr>
+<tr class="odd">
+<td align="left">org_LKW5uc4C9BNTBapFdHzJ</td>
+<td align="left">Microsoft Corporation</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">30085</td>
+</tr>
+<tr class="even">
+<td align="left">org_Ax4AmmkQeJlN1melxl1C</td>
+<td align="left">Micron Technology, Inc.</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">28000</td>
+</tr>
+<tr class="odd">
+<td align="left">org_adUSPYdjFbyHvoVakUrc</td>
+<td align="left">QUALCOMM Incorporated</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">24702</td>
+</tr>
+<tr class="even">
+<td align="left">org_wc04cUrRKOIlCxgRGBRE</td>
+<td align="left">Texas Instruments Incorporated</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">24181</td>
+</tr>
+<tr class="odd">
+<td align="left">org_uBBq49OpEQSGb2SJJBBT</td>
+<td align="left">Xerox Corporation</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">23173</td>
+</tr>
+<tr class="even">
+<td align="left">org_MO6EJRM1uhBUFxIjWimJ</td>
+<td align="left">Apple Inc.</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">21820</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>kable(recent_patent_acitivity, caption = &quot;Recent patent acitivity - Top 10 companies with the most new granted patents for 2019&quot;)</code></pre>
+<table>
+<caption>Recent patent acitivity - Top 10 companies with the most new granted patents for 2019</caption>
+<thead>
+<tr class="header">
+<th align="left">organization</th>
+<th align="right">year</th>
+<th align="right">new_granted_patents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">International Business Machines Corporation</td>
+<td align="right">2019</td>
+<td align="right">9265</td>
+</tr>
+<tr class="even">
+<td align="left">Intel Corporation</td>
+<td align="right">2019</td>
+<td align="right">3526</td>
+</tr>
+<tr class="odd">
+<td align="left">Microsoft Technology Licensing, LLC</td>
+<td align="right">2019</td>
+<td align="right">3106</td>
+</tr>
+<tr class="even">
+<td align="left">Apple Inc.</td>
+<td align="right">2019</td>
+<td align="right">2817</td>
+</tr>
+<tr class="odd">
+<td align="left">Ford Global Technologies, LLC</td>
+<td align="right">2019</td>
+<td align="right">2624</td>
+</tr>
+<tr class="even">
+<td align="left">Amazon Technologies, Inc.</td>
+<td align="right">2019</td>
+<td align="right">2533</td>
+</tr>
+<tr class="odd">
+<td align="left">QUALCOMM Incorporated</td>
+<td align="right">2019</td>
+<td align="right">2359</td>
+</tr>
+<tr class="even">
+<td align="left">Google Inc.</td>
+<td align="right">2019</td>
+<td align="right">2290</td>
+</tr>
+<tr class="odd">
+<td align="left">General Electric Company</td>
+<td align="right">2019</td>
+<td align="right">1860</td>
+</tr>
+<tr class="even">
+<td align="left">Hewlett-Packard Development Company, L.P.</td>
+<td align="right">2019</td>
+<td align="right">1589</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>kable(innovative_tech_sector, caption = &quot;Innovation in Tech - Top 10 companies (worldwide) with the most patents&quot;)</code></pre>
+<table>
+<caption>Innovation in Tech - Top 10 companies (worldwide) with the most patents</caption>
+<thead>
+<tr class="header">
+<th align="left">organization</th>
+<th align="right">type</th>
+<th align="right">Number_patents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">International Business Machines Corporation</td>
+<td align="right">2</td>
+<td align="right">345119</td>
+</tr>
+<tr class="even">
+<td align="left">Samsung Electronics Co., Ltd.</td>
+<td align="right">3</td>
+<td align="right">204839</td>
+</tr>
+<tr class="odd">
+<td align="left">Canon Kabushiki Kaisha</td>
+<td align="right">3</td>
+<td align="right">187339</td>
+</tr>
+<tr class="even">
+<td align="left">General Electric Company</td>
+<td align="right">2</td>
+<td align="right">145474</td>
+</tr>
+<tr class="odd">
+<td align="left">Hitachi, Ltd.</td>
+<td align="right">3</td>
+<td align="right">140678</td>
+</tr>
+<tr class="even">
+<td align="left">Kabushiki Kaisha Toshiba</td>
+<td align="right">3</td>
+<td align="right">139424</td>
+</tr>
+<tr class="odd">
+<td align="left">Sony Corporation</td>
+<td align="right">3</td>
+<td align="right">138639</td>
+</tr>
+<tr class="even">
+<td align="left">Fujitsu Limited</td>
+<td align="right">3</td>
+<td align="right">103375</td>
+</tr>
+<tr class="odd">
+<td align="left">Intel Corporation</td>
+<td align="right">2</td>
+<td align="right">98654</td>
+</tr>
+<tr class="even">
+<td align="left">Matsushita Electric Industrial Co., Ltd.</td>
+<td align="right">3</td>
+<td align="right">98039</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>kable(tech_main_classes, caption = &quot;Innovation in Tech -Top 5 USPTO tech main classes&quot;)</code></pre>
+<table>
+<caption>Innovation in Tech -Top 5 USPTO tech main classes</caption>
+<thead>
+<tr class="header">
+<th align="left">patent_id</th>
+<th align="left">mainclass_id</th>
+<th align="right">tech_main_class</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">8287676</td>
+<td align="left">156</td>
+<td align="right">161</td>
+</tr>
+<tr class="even">
+<td align="left">4683228</td>
+<td align="left">544</td>
+<td align="right">148</td>
+</tr>
+<tr class="odd">
+<td align="left">5103007</td>
+<td align="left">544</td>
+<td align="right">144</td>
+</tr>
+<tr class="even">
+<td align="left">5081245</td>
+<td align="left">544</td>
+<td align="right">143</td>
+</tr>
+<tr class="odd">
+<td align="left">4683228</td>
+<td align="left">548</td>
+<td align="right">142</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="my-second-post-note-the-order" class="section level1">
-<h1><span class="header-section-number">2</span> My second post (note the order)</h1>
-<p>Last compiled: 2020-12-05</p>
-<p>I’m writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom</p>
 </div>
-<div id="adding-r-stuff" class="section level1">
-<h1><span class="header-section-number">3</span> Adding R stuff</h1>
-<p>So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place.</p>
-<p>So, let’s say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:</p>
-<pre class="r"><code>samples &lt;- rnorm(100, mean=0, sd=1)
-hist(samples)</code></pre>
-<p><img src="journal_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<p>When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You’ll learn that all of these things and more can be customized in each R code block.</p>
+<div id="data-visualization" class="section level1">
+<h1><span class="header-section-number">4</span> Data Visualization</h1>
+<div id="time-course-of-the-cumulative-covid-19-cases" class="section level2">
+<h2><span class="header-section-number">4.1</span> Time course of the cumulative Covid-19 cases</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code>library(tidyverse)
+library(ggthemes)
+library(lubridate)
+library(ggrepel)
+
+## DATA PREPARATION
+
+library(tidyverse)
+covid_data_tbl &lt;- read_csv(&quot;https://opendata.ecdc.europa.eu/covid19/casedistribution/csv&quot;)
+
+
+covid_data_2020_cumulative_cases &lt;- covid_data_tbl %&gt;%
+  select(countriesAndTerritories, month, year, cases) %&gt;% 
+  set_names(c(&quot;country&quot;, &quot;month&quot;, &quot;year&quot;, &quot;cases&quot;)) %&gt;%
+  
+  # Selecting columns to focus on and adding a month column
+  
+  filter(year == &quot;2020&quot;) %&gt;%
+  filter(country %in%  c(&quot;Germany&quot;, &quot;Spain&quot;, &quot;France&quot;,&quot;United_States_of_America&quot;,&quot;United_Kingdom&quot;))  %&gt;%
+  
+  # Grouping by month, and summarizing cases
+  group_by(month,country) %&gt;%
+  summarize(cases = sum(cases)) %&gt;% 
+  ungroup() %&gt;%
+  group_by(country) %&gt;%
+  mutate (cases = cumsum(cases)) %&gt;%
+  ungroup() %&gt;%
+
+  mutate(cumulative_cases = scales::dollar(cases, big.mark = &quot;.&quot;, 
+                                   decimal.mark = &quot;,&quot;, 
+                                   prefix = &quot;&quot;, 
+                                   suffix = &quot;&quot;))
+
+## PLOTTING
+# Canvas
+covid_data_2020_cumulative_cases  %&gt;%
+  ggplot(aes(x = month, y = cases, color = country)) +
+
+  # Geometries
+  geom_line(size = 1) +
+  
+  # geom_label(data = covid_data_2020_cumulative_cases %&gt;% select(cases) %&gt;% max(cases))+
+  # geom_label(aes(x=month, y=cases, label=cumulative_cases) , 
+  #            data = covid_data_2020_cumulative_cases %&gt;% slice(which.max(cases)),
+  #            vjust = -0.2, 
+  #            hjust = 0.1) +
+  
+  geom_label_repel(aes(x=month, y=cases, label=cumulative_cases) , 
+                   data = covid_data_2020_cumulative_cases %&gt;% slice(which.max(cases)),
+                    vjust = 0.5, 
+                    hjust = 2.5,color = &quot;#08306B&quot;)+
+
+  # Formatting
+  expand_limits(y = 0) +
+ 
+  scale_x_continuous(breaks = covid_data_2020_cumulative_cases$month,
+                     labels = month(covid_data_2020_cumulative_cases$month, label = T)) +
+  
+  scale_y_continuous(breaks = seq(0e6, 16e6, by = 2e6),
+                     labels = scales::dollar_format(scale = 1/1e6,
+                                                    prefix = &quot;&quot;,
+                                                    suffix = &quot;M&quot;)) +
+  labs(
+    title = &quot;COVID-19 confirmed cases worldwide&quot;,
+    x = &quot;Year 2020&quot;,
+    y = &quot;Cumulative Cases&quot;,
+    color = &quot;Country&quot;
+  )  +
+  
+  theme_light() +
+  theme(title = element_text(face = &quot;bold&quot;, color = &quot;#08306B&quot;),
+        legend.position  = &quot;bottom&quot;,
+        axis.text.x = element_text(angle = 45))</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="distribution-of-the-mortality-rate" class="section level2">
+<h2><span class="header-section-number">4.2</span> Distribution of the mortality rate</h2>
+<pre class="r"><code>cat(&quot;\014&quot;)</code></pre>
+<div style="page-break-after: always;"></div>
+<pre class="r"><code>library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(ggthemes)
+library(lubridate)
+library(ggrepel)
+library(maps)
+library(readr)
+library(scales)
+## DATA PREPARATION
+covid_data_tbl &lt;- read_csv(&quot;https://opendata.ecdc.europa.eu/covid19/casedistribution/csv&quot;)
+
+
+covid_mortality_rate &lt;- covid_data_tbl %&gt;%
+  select(countriesAndTerritories, deaths, popData2019) %&gt;% 
+  set_names(c(&quot;country&quot;, &quot;deaths&quot;, &quot;population&quot;)) %&gt;%
+  
+  # Selecting columns to focus on and adding a month column
+  mutate(mortality_rate = deaths/population)%&gt;%
+  mutate(across(country, str_replace_all, &quot;_&quot;, &quot; &quot;)) %&gt;%
+  mutate(country = case_when(
+    
+    country == &quot;United Kingdom&quot; ~ &quot;UK&quot;,
+    country == &quot;United States of America&quot; ~ &quot;USA&quot;,
+    country == &quot;Czechia&quot; ~ &quot;Czech Republic&quot;,
+    TRUE ~ country
+  )) %&gt;%
+  
+  group_by(country) %&gt;%
+  summarize(deaths=sum(deaths),population=max(population),mortality_rate = sum(mortality_rate)) %&gt;%
+  ungroup() 
+ 
+
+world &lt;- map_data(&quot;world&quot;)
+
+covid_world_mortality_rate &lt;- left_join(x = world, y = covid_mortality_rate, by=c(&quot;region&quot; = &quot;country&quot;)) 
+
+ggplot(covid_world_mortality_rate, aes(x=long, y=lat, group = group, fill = (mortality_rate))) + 
+  geom_polygon(colour = &quot;white&quot;) +
+  scale_fill_continuous(low = &quot;dodgerblue&quot;,
+                        high = &quot;black&quot;,
+                        guide=&quot;colorbar&quot;,
+                        labels=percent,
+                        limits = c(0, .0015)) +
+   
+  
+  
+  theme_bw() +
+  labs(fill = &quot;Mortality Rate&quot; ,
+       title = &quot;Confirmed COVID-19 deaths relative to the size of population&quot;, 
+       subtitle = &quot;More than 1.5 Million confirmed COVID-19 deaths worldwide&quot;,
+       x=&quot;long&quot;, 
+       y=&quot;lat&quot;)</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
 </div>
 
 
