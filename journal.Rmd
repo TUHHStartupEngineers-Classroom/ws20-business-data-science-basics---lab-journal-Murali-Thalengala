@@ -34,6 +34,7 @@ library(xopen)     # Quickly opening URLs
 library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)   # character string/text processing
+library(knitr)
 
 
 
