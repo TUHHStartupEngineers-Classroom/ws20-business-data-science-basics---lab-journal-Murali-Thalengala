@@ -24,6 +24,77 @@ This is an `.Rmd` file. It is plain text with special features. Any time you wri
 
 Last compiled: `r Sys.Date()`
 
+```{r}
+
+
+library (httr)
+library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking & Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)   # character string/text processing
+
+
+
+  url  <- "https://economictimes.indiatimes.com/et500"
+  html <- url %>% 
+  read_html()
+
+
+       #Take country name
+       Rank <-  html %>% 
+       html_nodes(css = ".Rnk1.textC") %>%
+       html_text()
+       as.numeric()
+       
+       #Take company name
+       Company_Name <- html %>% 
+       html_nodes( ".comp") %>% 
+       html_text()
+       
+       #Market capitalisation
+       Market_cap <- html %>% 
+       html_nodes( ".textR") %>% 
+       html_text() %>%
+       stringr::str_replace_all(pattern = ",", replacement = "")%>%
+       as.numeric()
+      
+       
+       
+       
+       
+       company_table1 <- tibble(Rank, Company_Name)
+       
+       company_table2 <- tibble(Market_cap) %>% 
+       slice(1,4,7,10,13,16,19,22,25,28) %>%
+       set_names(c("Market_capitalisation"))
+
+       
+       company_table3 <- tibble(Market_cap) %>% 
+       slice(2,5,8,11,14,17,20,23,26,29) %>%
+       set_names(c("Revenue_change_%"))
+       
+       company_table4 <- tibble(Market_cap) %>% 
+       slice(3,6,9,12,15,18,21,24,27,30)%>%
+       set_names(c("PAT_change_%"))
+       
+      
+       Top10_Companies_in_India <-   tibble(company_table1,company_table2,company_table3,company_table4)%>%
+
+       mutate(Market_capitalisation = scales::dollar(Market_capitalisation, big.mark = ".", decimal.mark = ",", prefix = "", suffix = " Rs.crores"))
+       
+  kable(Top10_Companies_in_India,caption="Top 10 companies in India")
+  
+ ```      
+       
+       
+       
+
+
+
+
+
 Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left. 
 
 ## Second level header
